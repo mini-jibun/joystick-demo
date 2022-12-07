@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<head>
+    <title>JoyStick Test</title>
+    <meta charset="utf-8">
+    <script src="http://bobboteck.github.io/joy/joy.js"></script>
+</head>
+    <div id="joystick" style="width:200px;height:200px;margin-bottom:20px;"></div>
+    x:
+    <input type="text" id="x">
+    y:
+    <input type="text" id="y">
+    veolcity:
+    <input type="text" id="velocity">
+    radian:
+    <input type="text" id="radian">
+    degree:
+    <input type="text" id="degree">
+    duty_left(float):
+    <input type="text" id="duty_left">
+    duty_right(float):
+    <input type="text" id="duty_right">
+    duty_left(mapped):
+    <input type="text" id="duty_left_mapped">
+    duty_right(mapped):
+    <input type="text" id="duty_right_mapped">
+    <script>
+        const joystick = new JoyStick('joystick', {});
+        setInterval(() => {
+            const d = 47.5;
+            const _x = joystick.GetX();
+            const _y = joystick.GetY();
+            const slope = _y / _x;
+            const xMax = Math.sqrt(10000 / (Math.pow(slope, 2) + 1));
+            const yMax = Math.sqrt((10000 * Math.pow(slope, 2)) / (Math.pow(slope, 2) + 1));
+            const x = isNaN(xMax) ? _x : Math.sign(_x) * Math.min(Math.abs(_x), xMax);
+            const y = isNaN(yMax) ? _y : Math.sign(_y) * Math.min(Math.abs(_y), yMax);
+            const velocity = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+            const radian = Math.acos(x / velocity);
+            const degree = radian * (180 / Math.PI);
+            const dutyLeft = isNaN(radian) ? 0 : Math.sign(_y) * (velocity + Math.sign(_y) * d * (Math.PI / 2 - radian));
+            const dutyRight = isNaN(radian) ? 0 : Math.sign(_y) * (velocity - Math.sign(_y) * d * (Math.PI / 2 - radian));
+
+            const map = (value) => {
+                const in_min = -180;
+                const in_max = 180;
+                const out_min = -255;
+                const out_max = 255;
+                return Math.trunc((value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min);
+            }
+
+            const xElem = document.getElementById('x');
+            const yElem = document.getElementById('y');
+            const velocityElem = document.getElementById('velocity');
+            const radianElem = document.getElementById('radian');
+            const degreeElem = document.getElementById('degree');
+            const dutyLeftElem = document.getElementById('duty_left');
+            const dutyRightElem = document.getElementById('duty_right');
+            const dutyLeftMappedElem = document.getElementById('duty_left_mapped');
+            const dutyRightMappedElem = document.getElementById('duty_right_mapped');
+
+            xElem.value = x;
+            yElem.value = y;
+            velocityElem.value = velocity;
+            radianElem.value = radian;
+            degreeElem.value = degree;
+            dutyLeftElem.value = dutyLeft;
+            dutyRightElem.value = dutyRight;
+            dutyLeftMappedElem.value = map(dutyLeft);
+            dutyRightMappedElem.value = map(dutyRight);
+        }, 50);
+    </script>
+</html>
